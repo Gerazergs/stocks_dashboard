@@ -20,22 +20,6 @@ remote_css('https://fonts.googleapis.com/icon?family=Material+Icons')
 button_clicked = st.button("Re-load")
 
 
-
-def categorical(palabras:int, listado:list):
-    
-    return listado[palabras]
-    
-
-def create_random_number(numero_1, numero_2):
-    return random.randint(numero_1, numero_2)
-
-def create_random_number2(numero_1, numero_2):
-    size = numero_2
-    rng = default_rng(numero_1)
-    return rng.normal(size=size)
-
-
-
 df = pd.read_csv('my_new_portfolio.csv')
 df.drop('Unnamed: 0', axis = 1, inplace =True)
 
@@ -45,7 +29,42 @@ df3 = pd.read_csv('SPY500_normalizated.csv')
 
 df4 = pd.read_csv('sectors.csv')
 
-st.write('Mi first app with stramlit : just ploting random samples')
+df5 = pd.read_csv('Full_procesated_SPY500.csv')
+df5.columns =['stocks','std','rendimiento','riesgo','coeficiente_variacion','beta','alfa','Riesgo_sistematico','Riesgo_no_sistematico','sharpie','teynor']
+
+
+st.write('Mi first app with stramlit : just ploting selected features')
+
+Filter_1 = st.sidebar.selectbox(
+    "select greater than this risk percentage",
+    ('Min%','0%','10%','20%','30%','40%','50%','60%','70%','80%','90%','100%')
+)
+
+Filter_2 = st.sidebar.selectbox(
+    "select lower than this risk percentage",
+    ('30%','40%','50%','60%','70%','80%','90%','100%','Max%')
+)
+
+
+
+
+st.write('greater than this risk selected:', Filter_1)
+st.write('lower than this risk selected:', Filter_2)
+if Filter_1 != 'Min%':
+    Filter_1 = int(Filter_1.replace('%',''))/100
+    df5 =df5[df5['riesgo']>Filter_1]
+    df = df5
+else:
+    df = df5
+    
+if Filter_2 != 'Max%':
+    Filter_2 = int(Filter_2.replace('%',''))/100
+    df =df[df['riesgo']<Filter_2]
+else:
+    df
+
+df = df.sort_values(['sharpie', 'teynor'], ascending = False)
+df = df.iloc[0:6,:]
 
 st.table(df.head())
 
@@ -72,18 +91,43 @@ with row2_spacer3:
             )
     figura2.update_layout(height=300, width=600, title_text=f'sub Sector analysis')
     st.write(figura2)
-# figura2 = px.bar(
-#             df4,
-#             x='Symbol', y='Headquarters Location',
-#         )
-# figura2.update_layout(height=300, width=600, title_text=f'radius analysis')
 
-
-# fig = px.line_polar(df, r="frequency", theta="direction", color="strength", line_close=True,
-#                     color_discrete_sequence=px.colors.sequential.Plasma_r,
-#                     template="plotly_dark",)
-
-
+x=2
+for i in lista:
+    if x % 2 == 0:
+        with row2_spacer1:
+            x+=1
+            df3[i]=df3[i].astype('float')
+            mean =df3[i].mean()
+            std =mean-df3[i].std()
+            std_plus =mean+df3[i].std()
+            hist = px.histogram(df3, x=i)
+            hist.add_shape(type="line",x0=mean, x1=mean, y0 =0, y1=120 , xref='x', yref='y',
+                    line = dict(color = 'blue', dash = 'dash'))
+            hist.add_shape(type="line",x0=std, x1=std, y0 =0, y1=120 , xref='x', yref='y',
+                        line = dict(color = 'red', dash = 'dash'))
+            hist.add_shape(type="line",x0=std_plus, x1=std_plus, y0 =0, y1=120 , xref='x', yref='y',
+                        line = dict(color = 'red', dash = 'dash'))
+            hist.update_layout(height=300, width=600, title_text=f'histogram of {i}')
+            st.write(hist)
+            
+    else:
+        with row2_spacer3:
+            x+=1
+            df3[i]=df3[i].astype('float')
+            mean =df3[i].mean()
+            std =mean-df3[i].std()
+            std_plus =mean+df3[i].std()
+            hist = px.histogram(df3, x=i)
+            hist.add_shape(type="line",x0=mean, x1=mean, y0 =0, y1=120 , xref='x', yref='y',
+                    line = dict(color = 'blue', dash = 'dash'))
+            hist.add_shape(type="line",x0=std, x1=std, y0 =0, y1=120 , xref='x', yref='y',
+                        line = dict(color = 'red', dash = 'dash'))
+            hist.add_shape(type="line",x0=std_plus, x1=std_plus, y0 =0, y1=120 , xref='x', yref='y',
+                        line = dict(color = 'red', dash = 'dash'))
+            hist.update_layout(height=300, width=600, title_text=f'histogram of {i}')
+            st.write(hist)
+        
 
 with row2_spacer1:
     for i in lista:
